@@ -36,7 +36,7 @@ function createScenario(overrides?: Partial<LoanScenario>): LoanScenario {
     monthlyExtraPayment: 0,
     annualExtraEmi: 0,
     annualIncreasePercent: 0,
-    annualIncreaseStartYear: 1,
+    annualIncreaseStartYear: 0,
     customEmi: false,
     customEmiAmount: 0,
     lumpSums: [],
@@ -359,6 +359,7 @@ function App() {
         frequency: selectedScenario.frequency,
       })
     : 0
+  const isAnnualIncreaseEnabled = (selectedScenario?.annualIncreasePercent ?? 0) > 0
   const isDarkMode = theme === 'dark'
 
   return (
@@ -481,15 +482,23 @@ function App() {
               </label>
               <label>
                 <span>Annual EMI increase (%)</span>
-                <input type="number" value={getInputValue(selectedScenario.annualIncreasePercent)} onChange={(event) => updateScenario('annualIncreasePercent', Number(event.target.value))} />
+                <input
+                  type="number"
+                  value={getInputValue(selectedScenario.annualIncreasePercent)}
+                  onChange={(event) => updateScenario('annualIncreasePercent', Number(event.target.value))}
+                />
               </label>
               <label>
                 <span>Increase start year</span>
-                <input type="number" value={getInputValue(selectedScenario.annualIncreaseStartYear)} onChange={(event) => updateScenario('annualIncreaseStartYear', Number(event.target.value))} />
+                <input
+                  type="number"
+                  value={selectedScenario.annualIncreaseStartYear}
+                  disabled={!isAnnualIncreaseEnabled}
+                  onChange={(event) => updateScenario('annualIncreaseStartYear', Number(event.target.value))}
+                />
               </label>
             </div>
           ) : null}
-
           <div className="lump-sum-section">
             <div className="panel-heading">
               <h3>Lump-Sum Prepayments</h3>
@@ -518,6 +527,27 @@ function App() {
           </div>
         </main>
       </section>
+
+          <section className="mobile-summary-stack" aria-label="Key loan summary">
+            <article className="summary-card">
+              <span className="card-label">Principal</span>
+              <strong>{selectedScenario && selectedScenario.principal > 0 ? formatCurrency(selectedScenario.principal) : '—'}</strong>
+            </article>
+            <article className="summary-card">
+              <span className="card-label">EMI</span>
+              <strong>{selectedScenario && baseEmi > 0 ? formatCurrency(baseEmi) : '—'}</strong>
+            </article>
+            <article className="summary-card">
+              <span className="card-label">Interest saved</span>
+              <strong>{activeSchedule && activeSchedule.summary.interestSaved > 0 ? formatCurrency(activeSchedule.summary.interestSaved) : '—'}</strong>
+            </article>
+            <article className="summary-card">
+              <span className="card-label">Payoff</span>
+              <strong>
+                {activeSchedule ? formatPayoff(activeSchedule.summary.payoffYear, activeSchedule.summary.payoffMonth) : '—'}
+              </strong>
+            </article>
+          </section>
 
       <section className="charts-grid">
         <article className="panel chart-card">
